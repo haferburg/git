@@ -194,7 +194,7 @@ def read_pipe_full(c):
         sys.stderr.write('Reading pipe: %s\n' % str(c))
 
     expand = isinstance(c,basestring)
-    p = subprocess.Popen(c, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=expand)
+    p = subprocess.Popen(c, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=expand)
     (out, err) = p.communicate()
     return (p.returncode, out, err)
 
@@ -230,7 +230,7 @@ def read_pipe_lines(c):
         sys.stderr.write('Reading pipe: %s\n' % str(c))
 
     expand = isinstance(c, basestring)
-    p = subprocess.Popen(c, stdout=subprocess.PIPE, shell=expand)
+    p = subprocess.Popen(c, stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=expand)
     pipe = p.stdout
     val = pipe.readlines()
     if pipe.close() or p.wait():
@@ -247,7 +247,7 @@ def p4_has_command(cmd):
     """Ask p4 for help on this command.  If it returns an error, the
        command does not exist in this version of p4."""
     real_cmd = p4_build_cmd(["help", cmd])
-    p = subprocess.Popen(real_cmd, stdout=subprocess.PIPE,
+    p = subprocess.Popen(real_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
     p.communicate()
     return p.returncode == 0
@@ -261,7 +261,7 @@ def p4_has_move_command():
     if not p4_has_command("move"):
         return False
     cmd = p4_build_cmd(["move", "-k", "@from", "@to"])
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = p.communicate()
     # return code will be 1 in either case
     if err.find("Invalid option") >= 0:
@@ -633,6 +633,8 @@ def p4CmdList(cmd, stdin=None, stdin_mode='w+b', cb=None, skip_info=False,
                 stdin_file.write(i + '\n')
         stdin_file.flush()
         stdin_file.seek(0)
+    else:
+        stdin_file = subprocess.PIPE
 
     p4 = subprocess.Popen(cmd,
                           shell=expand,
@@ -773,7 +775,7 @@ def extractSettingsGitLog(log):
 
 def gitBranchExists(branch):
     proc = subprocess.Popen(["git", "rev-parse", branch],
-                            stderr=subprocess.PIPE, stdout=subprocess.PIPE);
+                            stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE);
     return proc.wait() == 0;
 
 def gitUpdateRef(ref, newvalue):
@@ -858,7 +860,7 @@ def branch_exists(branch):
     """Make sure that the given ref name really exists."""
 
     cmd = [ "git", "rev-parse", "--symbolic", "--verify", branch ]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, _ = p.communicate()
     if p.returncode:
         return False
@@ -1244,7 +1246,7 @@ class GitLFS(LargeFileSystem):
 
         pointerProcess = subprocess.Popen(
             ['git', 'lfs', 'pointer', '--file=' + contentFile],
-            stdout=subprocess.PIPE
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
         pointerFile = pointerProcess.stdout.read()
         if pointerProcess.wait():
