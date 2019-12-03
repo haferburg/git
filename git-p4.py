@@ -111,10 +111,11 @@ def p4_build_cmd(cmd):
         real_cmd += cmd
 
     # now check that we can actually talk to the server
-    global p4_access_checked
-    if not p4_access_checked:
-        p4_access_checked = True    # suppress access checks in p4_check_access itself
-        p4_check_access()
+    if not (user and password):
+        global p4_access_checked
+        if not p4_access_checked:
+            p4_access_checked = True    # suppress access checks in p4_check_access itself
+            p4_check_access()
 
     return real_cmd
 
